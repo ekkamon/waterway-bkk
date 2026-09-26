@@ -75,31 +75,46 @@ const LINE_WEIGHT: Record<string, number> = {
   ditch: 0.9,
 };
 
+// Touch screens get much larger invisible hit areas so dense markers are tappable.
+function isCoarse(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+}
+
+function hitWrap(hit: number, inner: string): string {
+  return `<div style="width:${hit}px;height:${hit}px;display:flex;align-items:center;justify-content:center;">${inner}</div>`;
+}
+
 function levelIcon(
   station: LevelStation,
   detailed: boolean,
   selected: boolean,
 ): L.DivIcon {
   const color = levelColor(station);
+  const coarse = isCoarse();
   const ring = selected ? "box-shadow:0 0 0 3px rgba(17,24,39,.85);" : "";
   if (!detailed) {
-    const size = selected ? 16 : 10;
+    const size = selected ? 16 : coarse ? 14 : 10;
+    const hit = coarse ? 40 : size + 8;
     return L.divIcon({
       className: "",
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
-      html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);${ring}"></div>`,
+      iconSize: [hit, hit],
+      iconAnchor: [hit / 2, hit / 2],
+      html: hitWrap(
+        hit,
+        `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);${ring}"></div>`,
+      ),
     });
   }
   const label = station.level == null ? "N/A" : formatLevel(station.level);
   const out =
     station.levelOut != null ? ` / ${formatLevel(station.levelOut)}` : "";
   const shape = station.isGate ? "border-radius:4px;" : "border-radius:999px;";
+  const pad = coarse ? "padding:5px 10px;min-height:30px;font-size:13px;" : "padding:1px 6px;font-size:11px;";
   return L.divIcon({
     className: "",
     iconSize: [0, 0],
     iconAnchor: [0, 0],
-    html: `<div style="transform:translate(-50%,-50%);display:inline-block;white-space:nowrap;padding:1px 6px;${shape}background:${color};color:#fff;font-size:11px;font-weight:600;line-height:16px;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);${ring}">${label}${out}</div>`,
+    html: `<div style="transform:translate(-50%,-50%);display:inline-flex;align-items:center;white-space:nowrap;${pad}${shape}background:${color};color:#fff;font-weight:600;line-height:16px;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);${ring}">${label}${out}</div>`,
   });
 }
 
@@ -110,31 +125,48 @@ function pumpIcon(
 ): L.DivIcon {
   const color = PUMP_STATE_META[pump.state].color;
   const pulse = pump.state === "running" ? "wl-pulse" : "";
+  const coarse = isCoarse();
   const ring = selected ? "box-shadow:0 0 0 3px rgba(17,24,39,.85);" : "";
   if (!detailed) {
+    const size = coarse ? 16 : 12;
+    const hit = coarse ? 40 : size + 8;
     return L.divIcon({
       className: "",
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
-      html: `<div class="${pulse}" style="width:12px;height:12px;border-radius:3px;background:${color};border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);${ring}"></div>`,
+      iconSize: [hit, hit],
+      iconAnchor: [hit / 2, hit / 2],
+      html: hitWrap(
+        hit,
+        `<div class="${pulse}" style="width:${size}px;height:${size}px;border-radius:3px;background:${color};border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);${ring}"></div>`,
+      ),
     });
   }
+  const size = coarse ? 30 : 22;
+  const hit = coarse ? 40 : size;
   return L.divIcon({
     className: "",
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-    html: `<div class="${pulse}" style="width:22px;height:22px;border-radius:6px;background:${color};border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.5);${ring}">P</div>`,
+    iconSize: [hit, hit],
+    iconAnchor: [hit / 2, hit / 2],
+    html: hitWrap(
+      hit,
+      `<div class="${pulse}" style="width:${size}px;height:${size}px;border-radius:6px;background:${color};border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:${coarse ? 14 : 12}px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.5);${ring}">P</div>`,
+    ),
   });
 }
 
 function flowIcon(flow: FlowStation, selected: boolean): L.DivIcon {
   const color = flow.online ? "#0d9488" : "#6b7280";
+  const coarse = isCoarse();
   const ring = selected ? "box-shadow:0 0 0 3px rgba(17,24,39,.85);" : "";
+  const size = coarse ? 18 : 14;
+  const hit = coarse ? 40 : 22;
   return L.divIcon({
     className: "",
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-    html: `<div style="width:14px;height:14px;margin:2px;transform:rotate(45deg);background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);${ring}"></div>`,
+    iconSize: [hit, hit],
+    iconAnchor: [hit / 2, hit / 2],
+    html: hitWrap(
+      hit,
+      `<div style="width:${size}px;height:${size}px;transform:rotate(45deg);background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);${ring}"></div>`,
+    ),
   });
 }
 
@@ -237,7 +269,27 @@ export default function WaterwayMap({
         refreshLevelIcons();
       }
     });
-    map.on("click", () => onSelectRef.current(null));
+    // Forgiving taps: a tap near (not exactly on) a marker selects the closest one.
+    map.on("click", (e: L.LeafletMouseEvent) => {
+      const reach = isCoarse() ? 36 : 14;
+      let best: { kind: "level" | "pump" | "flow"; id: string; d: number } | null = null;
+      const consider = (
+        kind: "level" | "pump" | "flow",
+        entries: Map<string, { marker: L.Marker }>,
+      ) => {
+        entries.forEach(({ marker }, id) => {
+          const d = map
+            .latLngToContainerPoint(marker.getLatLng())
+            .distanceTo(e.containerPoint);
+          if (d <= reach && (!best || d < best.d)) best = { kind, id, d };
+        });
+      };
+      consider("pump", pumpMarkers.current);
+      consider("flow", flowMarkers.current);
+      consider("level", levelMarkers.current);
+      const picked = best as { kind: "level" | "pump" | "flow"; id: string } | null;
+      onSelectRef.current(picked ? { kind: picked.kind, id: picked.id } : null);
+    });
 
     const resize = () => map.invalidateSize({ animate: false });
     const observer = new ResizeObserver(resize);

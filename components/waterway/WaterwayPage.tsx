@@ -96,8 +96,8 @@ export function WaterwayPage() {
   const [layers, setLayers] = useState<MapLayers>({
     bkkWaterways: true,
     levels: true,
-    pumps: true,
-    flows: true,
+    pumps: false,
+    flows: false,
   });
   const [showThaiwater, setShowThaiwater] = useState(true);
   const [showBma, setShowBma] = useState(true);
