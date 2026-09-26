@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint",
-    "fetch:waterways": "node scripts/fetch-waterways.mjs"
+    "fetch:waterways": "node scripts/fetch-waterways.mjs",
+    "postbuild": "node scripts/postbuild-standalone.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",

@@ -5,7 +5,10 @@ import { fetchBma } from "./bma";
 import { fetchThaiwater } from "./thaiwater";
 import type { BmaPayload, ThaiwaterPayload } from "./types";
 
-const SNAPSHOT_DIR = path.join(process.cwd(), "data", "snapshots");
+// DATA_DIR keeps snapshots outside the build folder so a rebuild does not wipe history.
+const SNAPSHOT_DIR = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.join(process.cwd(), "data", "snapshots");
 const HISTORY_FILE = path.join(SNAPSHOT_DIR, "history.json");
 const HISTORY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
