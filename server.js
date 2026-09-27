@@ -1,6 +1,6 @@
-// Startup file for Plesk (Passenger) or any host that needs a fixed entry point.
-// Run `npm run build` first; this just starts the self-contained standalone server.
-// The standalone server binds to $HOSTNAME, which is the machine name on many hosts
-// and then refuses localhost/proxy traffic — bind to all interfaces unless told otherwise.
-process.env.HOSTNAME = process.env.BIND_HOST || "0.0.0.0";
+// Startup file for Plesk (Passenger) or any host that needs a fixed entry point
+// at the project root instead of .next/standalone/server.js directly (both work
+// identically — see scripts/postbuild-standalone.mjs, which generates the real
+// logic into .next/standalone/server.js on every build).
+// Run `npm run build` first.
 require("./.next/standalone/server.js");
