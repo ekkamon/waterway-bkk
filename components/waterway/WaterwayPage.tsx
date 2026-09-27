@@ -7,6 +7,7 @@ import {
   PanelLeftOpen,
   RefreshCw,
   Search,
+  TrendingUp,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
@@ -28,6 +29,7 @@ import {
 import type { LevelStatus } from "@/lib/waterway/types";
 import { cn } from "@/lib/utils";
 import { StationDetailPanel } from "./StationDetailPanel";
+import { TrendPanel } from "./TrendPanel";
 import type {
   BaseLayerId,
   MapLayers,
@@ -118,9 +120,19 @@ export function WaterwayPage() {
 
   const pick = (next: MapSelection) => {
     setSelection(next);
+    setShowTrend(false);
     setMobileOpen(false);
   };
   const [selection, setSelection] = useState<MapSelection>(null);
+  const [showTrend, setShowTrend] = useState(false);
+  const toggleTrend = () => {
+    setShowTrend((v) => !v);
+    setSelection(null);
+  };
+  const mapSelect = (next: MapSelection) => {
+    setSelection(next);
+    if (next) setShowTrend(false);
+  };
   const [tracking, setTracking] = useState(false);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -483,7 +495,7 @@ export function WaterwayPage() {
           layers={layers}
           baseLayer={baseLayer}
           selection={selection}
-          onSelect={setSelection}
+          onSelect={mapSelect}
           userLocation={userLocation}
           focusUserToken={focusUserToken}
         />
@@ -498,6 +510,18 @@ export function WaterwayPage() {
           title="ตำแหน่งของฉัน"
         >
           <LocateFixed className={cn("size-4", tracking && !userLocation && "animate-pulse")} />
+        </button>
+        <button
+          type="button"
+          onClick={toggleTrend}
+          className={cn(
+            "absolute left-3 top-24 z-[1000] rounded-md border bg-card p-2 shadow hover:bg-muted",
+            showTrend && "border-primary text-primary",
+          )}
+          aria-label="แนวโน้มสถานการณ์น้ำ"
+          title="แนวโน้มสถานการณ์น้ำ"
+        >
+          <TrendingUp className="size-4" />
         </button>
         {(locationError || nearest) && (
           <div
@@ -545,6 +569,14 @@ export function WaterwayPage() {
               pump={selectedPump}
               flow={selectedFlow}
               onClose={() => setSelection(null)}
+            />
+          </div>
+        )}
+        {showTrend && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] flex justify-end sm:inset-x-auto sm:bottom-auto sm:right-3 sm:top-3">
+            <TrendPanel
+              onClose={() => setShowTrend(false)}
+              onSelectStation={(id) => pick({ kind: "level", id })}
             />
           </div>
         )}

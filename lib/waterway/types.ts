@@ -106,6 +106,30 @@ export type GraphPoint = {
   value: number | null;
 };
 
+export type TrendDirection = "rising" | "falling" | "stable";
+
+export type TrendStation = {
+  id: string;
+  name: string;
+  waterway: string | null;
+  district: string | null;
+  province: string;
+  source: DataSource;
+  level: number | null;
+  delta: number;
+  rateHour: number;
+  direction: TrendDirection;
+};
+
+export type TrendResponse = {
+  fetchedAt: string;
+  windowHours: number;
+  counts: { rising: number; falling: number; stable: number; noData: number };
+  topRising: TrendStation[];
+  topFalling: TrendStation[];
+  overall: { t: string; avg: number }[];
+};
+
 export type WaterwayFeatureProps = {
   t: string;
   n?: string;

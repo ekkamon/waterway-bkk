@@ -6,6 +6,7 @@ import type {
   BmaPayload,
   GraphPoint,
   ThaiwaterPayload,
+  TrendResponse,
   WaterwayCollection,
 } from "@/lib/waterway/types";
 
@@ -23,6 +24,7 @@ export const waterwayQueryKeys = {
   geometry: (name: string) => ["waterway", "geometry", name] as const,
   history: (id: string) => ["waterway", "history", id] as const,
   graph: (stationId: number) => ["waterway", "graph", stationId] as const,
+  trend: ["waterway", "trend"] as const,
 };
 
 export function useBmaData() {
@@ -61,6 +63,16 @@ export function useStationGraph(stationId: number | null) {
       ),
     enabled: stationId != null,
     staleTime: 120_000,
+  });
+}
+
+export function useWaterwayTrend(enabled: boolean) {
+  return useQuery({
+    queryKey: waterwayQueryKeys.trend,
+    queryFn: () => getJson<TrendResponse>("/api/waterway/trend"),
+    enabled,
+    staleTime: 60_000,
+    refetchInterval: REFRESH_MS,
   });
 }
 

@@ -26,6 +26,10 @@ export async function readStationHistory(id: string): Promise<[number, number][]
   return (await readHistory())[id] ?? [];
 }
 
+export async function readFullHistory(): Promise<History> {
+  return readHistory();
+}
+
 async function appendHistory(levels: { id: string; level: number | null }[]) {
   const now = Date.now();
   const history = await readHistory();
