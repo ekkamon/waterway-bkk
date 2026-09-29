@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 
 import type {
   BmaPayload,
+  CentralPayload,
   GraphPoint,
+  RiverCollection,
   ThaiwaterPayload,
   TrendResponse,
   WaterwayCollection,
@@ -21,6 +23,7 @@ const REFRESH_MS = 120_000;
 export const waterwayQueryKeys = {
   bma: ["waterway", "bma"] as const,
   thaiwater: ["waterway", "thaiwater"] as const,
+  central: ["waterway", "central"] as const,
   geometry: (name: string) => ["waterway", "geometry", name] as const,
   history: (id: string) => ["waterway", "history", id] as const,
   graph: (stationId: number) => ["waterway", "graph", stationId] as const,
@@ -42,6 +45,24 @@ export function useThaiwaterData() {
     queryFn: () => getJson<ThaiwaterPayload>("/api/waterway/thaiwater"),
     refetchInterval: REFRESH_MS * 2,
     staleTime: 120_000,
+  });
+}
+
+export function useCentralWaterData() {
+  return useQuery({
+    queryKey: waterwayQueryKeys.central,
+    queryFn: () => getJson<CentralPayload>("/api/waterway/central"),
+    refetchInterval: REFRESH_MS * 2,
+    staleTime: 120_000,
+  });
+}
+
+export function useCentralRivers() {
+  return useQuery({
+    queryKey: waterwayQueryKeys.geometry("central-rivers"),
+    queryFn: () => getJson<RiverCollection>("/data/rivers-central.json"),
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
 

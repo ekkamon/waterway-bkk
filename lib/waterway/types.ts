@@ -106,6 +106,79 @@ export type GraphPoint = {
   value: number | null;
 };
 
+export type RiverKey =
+  | "ping"
+  | "wang"
+  | "yom"
+  | "nan"
+  | "sakaekrang"
+  | "chaophraya"
+  | "noi"
+  | "lopburi"
+  | "pasak"
+  | "thachin"
+  | "maeklong";
+
+// ThaiWater situation_level: 1 น้ำน้อยวิกฤต · 2 น้ำน้อย · 3 ปกติ · 4 น้ำมาก · 5 ล้นตลิ่ง
+export type Situation = 1 | 2 | 3 | 4 | 5;
+
+export type CentralStation = {
+  id: string;
+  code: string | null;
+  name: string;
+  province: string;
+  district: string | null;
+  basin: string | null;
+  river: string | null;
+  riverKey: RiverKey | null;
+  lat: number;
+  lng: number;
+  level: number | null;
+  previous: number | null;
+  bankMin: number | null;
+  groundLevel: number | null;
+  bankPercent: number | null;
+  discharge: number | null;
+  situation: Situation | null;
+  isKey: boolean;
+  updatedAt: string | null;
+  agency: string;
+  graphStationId: number | null;
+};
+
+export type DamStation = {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  province: string;
+  basin: string | null;
+  riverKey: RiverKey | null;
+  lat: number;
+  lng: number;
+  storage: number | null;
+  storagePercent: number | null;
+  usable: number | null;
+  usablePercent: number | null;
+  inflow: number | null;
+  released: number | null;
+  spilled: number | null;
+  maxStorage: number | null;
+  normalStorage: number | null;
+  date: string | null;
+  cctvUrl: string | null;
+};
+
+export type CentralPayload = {
+  fetchedAt: string;
+  damsFetchedAt: string | null;
+  stations: CentralStation[];
+  dams: DamStation[];
+};
+
+export type RiverFeatureProps = { r: RiverKey; n: string };
+
+export type RiverCollection = GeoJSON.FeatureCollection<GeoJSON.LineString, RiverFeatureProps>;
+
 export type TrendDirection = "rising" | "falling" | "stable";
 
 export type TrendStation = {

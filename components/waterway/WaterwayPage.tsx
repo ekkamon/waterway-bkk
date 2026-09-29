@@ -10,8 +10,10 @@ import {
   TrendingUp,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { ViewSwitcher } from "@/components/ViewSwitcher";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import {
   useBmaData,
   useThaiwaterData,
@@ -30,12 +32,12 @@ import type { LevelStatus } from "@/lib/waterway/types";
 import { cn } from "@/lib/utils";
 import { StationDetailPanel } from "./StationDetailPanel";
 import { TrendPanel } from "./TrendPanel";
-import type {
-  BaseLayerId,
-  MapLayers,
-  MapSelection,
-  UserLocation,
-} from "./WaterwayMap";
+import type { BaseLayerId, MapLayers, MapSelection } from "./WaterwayMap";
+
+const BKK_BOUNDS: [[number, number], [number, number]] = [
+  [13.3, 100.1],
+  [14.2, 101.0],
+];
 
 function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   const rad = Math.PI / 180;
@@ -133,52 +135,13 @@ export function WaterwayPage() {
     setSelection(next);
     if (next) setShowTrend(false);
   };
-  const [tracking, setTracking] = useState(false);
-  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [focusUserToken, setFocusUserToken] = useState(0);
-
-  useEffect(() => {
-    if (!tracking) return;
-    let first = true;
-    const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        setLocationError(null);
-        setUserLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-        });
-        if (first) {
-          first = false;
-          setFocusUserToken((t) => t + 1);
-        }
-      },
-      (err) => {
-        setLocationError(
-          err.code === err.PERMISSION_DENIED
-            ? "ไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง — เปิดสิทธิ์ตำแหน่งในเบราว์เซอร์"
-            : "ระบุตำแหน่งไม่สำเร็จ ลองใหม่อีกครั้ง",
-        );
-        setTracking(false);
-      },
-      { enableHighAccuracy: true, maximumAge: 15_000, timeout: 20_000 },
-    );
-    return () => navigator.geolocation.clearWatch(id);
-  }, [tracking]);
-
-  const toggleLocate = () => {
-    if (tracking && userLocation) {
-      setFocusUserToken((t) => t + 1);
-      return;
-    }
-    if (!("geolocation" in navigator)) {
-      setLocationError("เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง");
-      return;
-    }
-    setLocationError(null);
-    setTracking(true);
-  };
+  const {
+    tracking,
+    location: userLocation,
+    error: locationError,
+    focusToken: focusUserToken,
+    locate: toggleLocate,
+  } = useGeolocation(BKK_BOUNDS);
 
   const q = query.trim().toLowerCase();
 
@@ -562,6 +525,7 @@ export function WaterwayPage() {
         >
           {(mobileOpen || !desktopCollapsed) ? <PanelLeftClose className="size-4" /> : <PanelLeftOpen className="size-4" />}
         </button>
+        <ViewSwitcher current="bkk" className="absolute left-14 top-3 z-[1000]" />
         {(selectedLevel || selectedPump || selectedFlow) && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] flex justify-end sm:inset-x-auto sm:bottom-auto sm:right-3 sm:top-3">
             <StationDetailPanel

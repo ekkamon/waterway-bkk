@@ -8,7 +8,8 @@
     "start": "node .next/standalone/server.js",
     "lint": "eslint",
     "fetch:waterways": "node scripts/fetch-waterways.mjs",
-    "postbuild": "node scripts/postbuild-standalone.mjs"
+    "postbuild": "node scripts/postbuild-standalone.mjs",
+    "fetch:rivers": "node scripts/fetch-central-rivers.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",

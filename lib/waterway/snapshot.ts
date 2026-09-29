@@ -2,8 +2,9 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { fetchBma } from "./bma";
+import { fetchCentral } from "./central";
 import { fetchThaiwater } from "./thaiwater";
-import type { BmaPayload, ThaiwaterPayload } from "./types";
+import type { BmaPayload, CentralPayload, ThaiwaterPayload } from "./types";
 
 // DATA_DIR keeps snapshots outside the build folder so a rebuild does not wipe history.
 const SNAPSHOT_DIR = process.env.DATA_DIR
@@ -50,7 +51,7 @@ async function appendHistory(levels: { id: string; level: number | null }[]) {
   await rename(tmp, HISTORY_FILE);
 }
 
-type SnapshotMap = { bma: BmaPayload; thaiwater: ThaiwaterPayload };
+type SnapshotMap = { bma: BmaPayload; thaiwater: ThaiwaterPayload; central: CentralPayload };
 export type SnapshotName = keyof SnapshotMap;
 
 async function writeSnapshot<K extends SnapshotName>(name: K, data: SnapshotMap[K]) {
@@ -81,6 +82,7 @@ export function refreshSnapshots(): Promise<void> {
     const jobs: [SnapshotName, () => Promise<SnapshotMap[SnapshotName]>][] = [
       ["bma", fetchBma],
       ["thaiwater", fetchThaiwater],
+      ["central", async () => fetchCentral(await readSnapshot("central"))],
     ];
     await Promise.all(
       jobs.map(async ([name, fetcher]) => {
