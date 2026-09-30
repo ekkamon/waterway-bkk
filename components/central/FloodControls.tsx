@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, TriangleAlert, Waves, X } from 'lucide-react';
+import { Loader2, Waves, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import type { useFloodSimulation } from '@/hooks/useFloodSimulation';
@@ -60,13 +60,17 @@ export function FloodSettingsModal({
   const loading = flood.status === 'loading';
 
   // showModal() puts the dialog in the top layer, above Leaflet's panes, with Esc and focus
-  // trapping handled by the browser.
+  // trapping handled by the browser. Deliberately no dependency array: this re-syncs after
+  // *every* render (each call is a cheap no-op once dialog.open already matches) rather than
+  // only when `open` itself changes, so the dialog reopens itself if its DOM node is ever
+  // recreated out from under the `open` prop — e.g. a dev Fast Refresh mid-simulation, which
+  // otherwise leaves a fresh, still-closed <dialog> with no `open` change to re-trigger this.
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
     else if (!open && dialog.open) dialog.close();
-  }, [open]);
+  });
 
   return (
     <dialog
@@ -125,7 +129,7 @@ export function FloodSettingsModal({
         <fieldset disabled={!enabled} className="space-y-2 disabled:opacity-50">
           <label className="block">
             <span className="flex justify-between">
-              <span>ระดับน้ำเพิ่มจากปัจจุบัน (สมมติ)</span>
+              <span>ระดับน้ำเพิ่มจากปัจจุบัน</span>
               <span className="font-semibold tabular-nums">
                 +{extraRise.toFixed(1)} ม.
               </span>
@@ -196,19 +200,17 @@ export function FloodSettingsModal({
         <p className="text-[10px] leading-tight text-muted-foreground">
           แตะบนพื้นที่สีฟ้าเพื่อดูความลึกโดยประมาณ
         </p>
-        <div className="flex gap-1.5 rounded-md border border-amber-600/40 bg-amber-500/5 px-2 py-1.5 text-[10px] leading-tight text-amber-800 dark:text-amber-500">
-          <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
-          <p>
-            <span className="font-semibold">ข้อจำกัด:</span> เป็นแบบจำลองคร่าว ๆ
-            เพื่ออ้างอิงเบื้องต้นเท่านั้น
-            ไม่ใช่การพยากรณ์หรือประกาศเตือนภัยอย่างเป็นทางการ
-            คำนวณจากระดับน้ำที่สถานีวัดและข้อมูลความสูงพื้นดิน (DEM) เท่านั้น
-            ไม่ได้คิดคันกั้นน้ำ ปริมาณน้ำจริง ระยะเวลา หรือการระบายน้ำ
-            อาจคลาดเคลื่อนจากสถานการณ์จริงมาก
-            โดยเฉพาะพื้นที่ภูเขาหรือจุดที่ข้อมูลแผนที่ยังไม่ครบ
-            ห้ามใช้ประกอบการตัดสินใจด้านความปลอดภัยหรืออพยพ —
-            โปรดติดตามประกาศจากหน่วยงานราชการเป็นหลัก
-          </p>
+        <div className="rounded-md border border-amber-600/40 bg-amber-500/5 px-2 py-1.5 text-xs text-amber-800 dark:text-amber-500">
+          <div className="space-y-2">
+            <p>
+              <span className="font-semibold">ข้อจำกัด:</span>{' '}
+              เป็นแบบจำลองเพื่อแสดงภาพพื้นที่น้ำท่วมเบื้องต้นเท่านั้น
+              ไม่ใช่การพยากรณ์หรือประกาศเตือนภัย
+              ภาพจำลองอาจคลาดเคลื่อนจากสถานการณ์จริงมาก
+              โดยเฉพาะพื้นที่ภูเขาหรือจุดที่ข้อมูลไม่เพียงพอ
+              ห้ามใช้ประกอบการตัดสินใจด้านความปลอดภัยหรืออพยพ{' '}
+            </p>
+          </div>
         </div>
       </div>
     </dialog>
