@@ -79,7 +79,7 @@ export function FloodSettingsModal({
       <div className="flex items-center gap-2 border-b px-4 py-3">
         <Waves className="size-4 text-blue-600" />
         <h2 id="flood-settings-title" className="text-sm font-semibold">
-          จำลองน้ำท่วมจาก DEM
+          จำลองน้ำท่วม
         </h2>
         {loading && <Loader2 className="size-3.5 animate-spin text-blue-600" />}
         <button

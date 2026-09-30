@@ -536,9 +536,9 @@ export function CentralPage() {
             'absolute left-3 top-25 z-[1000] rounded-md border bg-card p-2 shadow hover:bg-muted',
             floodEnabled && 'border-blue-600 text-blue-600',
           )}
-          aria-label="จำลองน้ำท่วมจาก DEM"
+          aria-label="จำลองน้ำท่วม"
           aria-haspopup="dialog"
-          title="จำลองน้ำท่วมจาก DEM"
+          title="จำลองน้ำท่วม"
         >
           <Waves
             className={cn(
