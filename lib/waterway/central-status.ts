@@ -1,3 +1,4 @@
+import { RIVER_META } from "./basin";
 import type {
   CentralStation,
   DamStation,
@@ -67,6 +68,56 @@ export function computeRiverColors(
   rivers: RiverCollection,
   stations: CentralStation[],
 ): Map<string | number, string> {
+  const colors = new Map<string | number, string>();
+  for (const [id, s] of matchRiverStations(rivers, stations)) colors.set(id, stationColor(s));
+  return colors;
+}
+
+// A river-wide fallback for stations that report no discharge of their own: most ThaiWater
+// telemetry stations measure level only, not flow, so without this most reaches would have no
+// size signal at all. Assumes discharge doesn't jump much over a short reach absent a confluence.
+function nearestDischarge(stations: CentralStation[], riverKey: RiverKey, lat: number, lng: number): number | null {
+  let best: { d: number; discharge: number } | null = null;
+  for (const s of stations) {
+    if (s.riverKey !== riverKey || s.discharge == null) continue;
+    const d = km(lat, lng, s.lat, s.lng);
+    if (!best || d < best.d) best = { d, discharge: s.discharge };
+  }
+  return best?.discharge ?? null;
+}
+
+// RIVER_META's hand-set line weight (1 = a minor canal, 4.5 = the Chao Phraya mainstem) is the
+// last resort when a river has no discharge reading anywhere on it: scaled so a weight of 3
+// (a typical named tributary — the Ping, the Pasak) lands near 300 m³/s, the rough middle of
+// what our gauged reaches actually report.
+function weightDischarge(riverKey: RiverKey): number {
+  return ((RIVER_META[riverKey]?.weight ?? 2) / 3) * 300;
+}
+
+// Every coloured segment whose nearest station reports a level and a bank, with how far above
+// (positive) or below (negative) the bank that station reads — the input for the DEM flood
+// sketch, which floods a segment once its level plus the scenario rise tops the bank. `discharge`
+// is the best size estimate available for that reach (see aboveDischarge helpers), never null,
+// for sizing how far a flooded reach should be allowed to spread.
+export function bankReaches(
+  rivers: RiverCollection,
+  stations: CentralStation[],
+): { coords: GeoJSON.Position[]; overflow: number; level: number; discharge: number; station: CentralStation }[] {
+  const matches = matchRiverStations(rivers, stations);
+  const out: { coords: GeoJSON.Position[]; overflow: number; level: number; discharge: number; station: CentralStation }[] = [];
+  for (const f of rivers.features) {
+    const s = f.id != null ? matches.get(f.id) : undefined;
+    if (!s || s.level == null || s.bankMin == null || !s.riverKey) continue;
+    const discharge = s.discharge ?? nearestDischarge(stations, s.riverKey, s.lat, s.lng) ?? weightDischarge(s.riverKey);
+    out.push({ coords: f.geometry.coordinates, overflow: s.level - s.bankMin, level: s.level, discharge, station: s });
+  }
+  return out;
+}
+
+export function matchRiverStations(
+  rivers: RiverCollection,
+  stations: CentralStation[],
+): Map<string | number, CentralStation> {
   const byRiver = new Map<RiverKey, CentralStation[]>();
   for (const s of stations) {
     if (!s.riverKey || !s.situation) continue;
@@ -74,7 +125,7 @@ export function computeRiverColors(
     list.push(s);
     byRiver.set(s.riverKey, list);
   }
-  const colors = new Map<string | number, string>();
+  const matches = new Map<string | number, CentralStation>();
   for (const f of rivers.features) {
     const candidates = byRiver.get(f.properties.r);
     const coords = f.geometry.coordinates;
@@ -84,7 +135,7 @@ export function computeRiverColors(
       const d = km(lat, lng, s.lat, s.lng);
       if (d <= MAX_MATCH_KM && (!best || d < best.d)) best = { d, s };
     }
-    if (best && f.id != null) colors.set(f.id, stationColor(best.s));
+    if (best && f.id != null) matches.set(f.id, best.s);
   }
-  return colors;
+  return matches;
 }

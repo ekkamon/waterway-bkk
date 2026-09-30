@@ -46,3 +46,8 @@
 .wl-tiles-muted {
   filter: grayscale(0.85) contrast(0.9) brightness(1.08);
 }
+
+/* DEM cells are ~40 m; keep their edges crisp instead of a blurry wash when zoomed in. */
+.wl-flood-tile {
+  image-rendering: pixelated;
+}

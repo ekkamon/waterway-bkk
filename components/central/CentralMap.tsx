@@ -12,6 +12,7 @@ import {
   damColor,
   stationColor,
 } from "@/lib/waterway/central-status";
+import { renderFloodTiles, type FloodResult } from "@/lib/waterway/flood";
 import { formatLevel } from "@/lib/waterway/status";
 import type {
   CentralStation,
@@ -32,6 +33,7 @@ type CentralMapProps = {
   readonly onSelect: (selection: CentralSelection) => void;
   readonly userLocation: UserLocation | null;
   readonly focusUserToken: number;
+  readonly flood: FloodResult | null;
 };
 
 const HIGH_WATER_ZOOM = 8;
@@ -127,6 +129,7 @@ export default function CentralMap({
   onSelect,
   userLocation,
   focusUserToken,
+  flood,
 }: CentralMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -134,6 +137,8 @@ export default function CentralMap({
   const stationGroupRef = useRef<L.LayerGroup | null>(null);
   const damGroupRef = useRef<L.LayerGroup | null>(null);
   const userLayerRef = useRef<L.LayerGroup | null>(null);
+  const floodLayerRef = useRef<L.LayerGroup | null>(null);
+  const floodRef = useRef<FloodResult | null>(flood);
   const stationMarkers = useRef(new Map<string, { marker: L.Marker; station: CentralStation }>());
   const damMarkers = useRef(new Map<string, { marker: L.Marker; dam: DamStation }>());
   const zoomRef = useRef(7);
@@ -192,6 +197,9 @@ export default function CentralMap({
       maxZoom: 18,
       className: "wl-tiles-muted",
     }).addTo(map);
+    const floodPane = map.createPane("flood");
+    floodPane.style.zIndex = "340";
+    floodPane.style.pointerEvents = "none";
     map.createPane("rivers").style.zIndex = "350";
     const userPane = map.createPane("user");
     userPane.style.zIndex = "900";
@@ -199,13 +207,24 @@ export default function CentralMap({
     stationGroupRef.current = L.layerGroup().addTo(map);
     damGroupRef.current = L.layerGroup().addTo(map);
     userLayerRef.current = L.layerGroup().addTo(map);
+    floodLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
 
     map.on("zoomend", () => {
       zoomRef.current = map.getZoom();
       refreshMarkers();
     });
-    map.on("click", () => onSelectRef.current(null));
+    map.on("click", (e) => {
+      onSelectRef.current(null);
+      const point = floodRef.current?.depthAt(e.latlng.lat, e.latlng.lng);
+      if (!point) return;
+      L.popup({ closeButton: false, offset: [0, -4] })
+        .setLatLng(e.latlng)
+        .setContent(
+          `<div style="font-size:12px;line-height:1.5"><b>ความลึกน้ำท่วม (จำลอง) ~${point.depth.toFixed(2)} ม.</b><br/>ผิวน้ำ ${point.surface.toFixed(2)} ม. · พื้นดิน DEM ${point.ground.toFixed(1)} ม.</div>`,
+        )
+        .openOn(map);
+    });
 
     const observer = new ResizeObserver(() => map.invalidateSize({ animate: false }));
     observer.observe(containerRef.current);
@@ -314,6 +333,22 @@ export default function CentralMap({
     safeFlyTo(map, entry.getLatLng(), zoom, offset);
      
   }, [selection]);
+
+  useEffect(() => {
+    floodRef.current = flood;
+    const group = floodLayerRef.current;
+    if (!group) return;
+    group.clearLayers();
+    if (!flood) return;
+    for (const tile of renderFloodTiles(flood)) {
+      L.imageOverlay(tile.url, tile.bounds, {
+        pane: "flood",
+        opacity: 0.72,
+        interactive: false,
+        className: "wl-flood-tile",
+      }).addTo(group);
+    }
+  }, [flood]);
 
   useEffect(() => {
     const group = userLayerRef.current;

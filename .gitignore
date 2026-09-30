@@ -5,6 +5,8 @@ next-env.d.ts
 *.tsbuildinfo
 .DS_Store
 /data/snapshots
+/data/dem-src
+/data/dem-tiles
 
 .env
 .env.local

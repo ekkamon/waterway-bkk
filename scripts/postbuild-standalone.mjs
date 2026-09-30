@@ -1,10 +1,11 @@
 // `next build` with output: "standalone" does not copy public/ or .next/static,
 // and its generated .next/standalone/server.js does `process.chdir(__dirname)`
-// before doing anything else — so DATA_DIR's default (process.cwd()/data/snapshots)
-// would resolve inside .next/standalone, which we wipe below on every build.
-// This script makes .next/standalone fully self-contained AND makes its
-// server.js safe to use as a Plesk startup file directly, by wrapping the
-// Next-generated entry point with env vars anchored to the project root.
+// before doing anything else — so DATA_DIR/DEM_DATA_DIR's defaults
+// (process.cwd()/data/...) would resolve inside .next/standalone, which we
+// wipe below on every build. This script makes .next/standalone fully
+// self-contained AND makes its server.js safe to use as a Plesk startup file
+// directly, by wrapping the Next-generated entry point with env vars anchored
+// to the project root.
 import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -44,12 +45,14 @@ process.env.HOSTNAME = process.env.BIND_HOST || "0.0.0.0";
 
 // Next's generated server does process.chdir(__dirname) into .next/standalone,
 // and this build script wipes .next/standalone/data on every build. Anchor
-// DATA_DIR two levels up (the project root) so snapshots/history survive
-// rebuilds instead of silently resetting. Only wrong if this .next/standalone
-// folder was copied out from under its project root — set DATA_DIR yourself
-// in that deployment instead.
+// DATA_DIR and DEM_DATA_DIR two levels up (the project root) so snapshots/
+// history and downloaded DEM tiles survive rebuilds instead of silently
+// resetting. Only wrong if this .next/standalone folder was copied out from
+// under its project root — set these env vars yourself in that deployment
+// instead.
 const path = require("node:path");
 process.env.DATA_DIR ||= path.join(__dirname, "..", "..", "data", "snapshots");
+process.env.DEM_DATA_DIR ||= path.join(__dirname, "..", "..", "data", "dem-src");
 
 require("./server.original.js");
 `,
