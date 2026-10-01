@@ -180,9 +180,10 @@ export default function CentralMap({
     if (!containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current, {
       minZoom: 6,
+      // All of Thailand (5.6–20.5°N, 97.3–105.6°E) plus a 10% margin, so the whole country can be panned into view.
       maxBounds: [
-        [12.3, 97.3],
-        [20.8, 102.6],
+        [4.1, 95.8],
+        [22.0, 107.1],
       ],
       maxBoundsViscosity: 0.7,
       preferCanvas: true,
@@ -257,7 +258,7 @@ export default function CentralMap({
         };
       },
       onEachFeature: (feature, layer) => {
-        layer.bindTooltip(escapeHtml(feature.properties.n), { sticky: true });
+        layer.bindTooltip(escapeHtml(feature.properties.n ?? ""), { sticky: true });
       },
     }).addTo(map);
   }, [rivers, riverColors]);

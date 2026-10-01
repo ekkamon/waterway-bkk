@@ -3,6 +3,10 @@ import type { CentralPayload, CentralStation, DamStation, Situation } from "./ty
 
 const HII_BASE = "https://api-v3.thaiwater.net/api/v1/thaiwater30/public";
 const HEADERS = { "User-Agent": "Mozilla/5.0 (compatible; aegis-portal)" };
+// Gauges report hourly. A reading much older than that means the station is down: ThaiWater keeps
+// serving the frozen value and its situation_level, so the only tell is the timestamp.
+export const STALE_AFTER_MS = 6 * 60 * 60 * 1000;
+
 // Dam figures are published once a day and ship inside a ~10 MB feed, so refetch rarely.
 const DAM_REFRESH_MS = 60 * 60 * 1000;
 
@@ -29,6 +33,8 @@ function normalizeStation(r: Raw): CentralStation | null {
   if (lat == null || lng == null || st.id == null) return null;
   const level = toNum(r.waterlevel_msl);
   const situation = toNum(r.situation_level);
+  const updatedAt = toIso(r.waterlevel_datetime);
+  const stale = updatedAt == null || Date.now() - new Date(updatedAt).getTime() > STALE_AFTER_MS;
   const river = typeof r.river_name === "string" ? r.river_name.trim() || null : null;
 
   return {
@@ -48,12 +54,13 @@ function normalizeStation(r: Raw): CentralStation | null {
     groundLevel: toNum(st.ground_level),
     bankPercent: toNum(r.storage_percent),
     discharge: toNum(r.discharge),
+    stale,
     situation:
-      level != null && situation != null && situation >= 1 && situation <= 5
+      !stale && level != null && situation != null && situation >= 1 && situation <= 5
         ? (situation as Situation)
         : null,
     isKey: st.is_key_station === true,
-    updatedAt: toIso(r.waterlevel_datetime),
+    updatedAt,
     agency: r.agency?.agency_shortname?.th
       ? `${r.agency.agency_shortname.th} (ThaiWater/สสน.)`
       : "ThaiWater/สสน.",

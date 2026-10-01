@@ -11,6 +11,7 @@ export const CENTRAL_BASINS = new Set([
   "ลุ่มน้ำป่าสัก",
   "ลุ่มน้ำท่าจีน",
   "ลุ่มน้ำแม่กลอง",
+  "ลุ่มน้ำบางปะกง",
 ]);
 
 export const RIVER_META: Record<RiverKey, { label: string; weight: number }> = {
@@ -25,6 +26,7 @@ export const RIVER_META: Record<RiverKey, { label: string; weight: number }> = {
   pasak: { label: "แม่น้ำป่าสัก", weight: 3 },
   thachin: { label: "แม่น้ำท่าจีน", weight: 3 },
   maeklong: { label: "แม่น้ำแม่กลอง", weight: 3 },
+  bangpakong: { label: "แม่น้ำบางปะกง", weight: 3 },
 };
 
 const RIVER_BY_NAME: Record<string, RiverKey> = {
@@ -44,6 +46,11 @@ const RIVER_BY_NAME: Record<string, RiverKey> = {
   แม่น้ำแม่กลอง: "maeklong",
   แม่น้ำแควใหญ่: "maeklong",
   แม่น้ำแควน้อย: "maeklong",
+  แม่น้ำบางปะกง: "bangpakong",
+  แม่น้ำปราจีนบุรี: "bangpakong",
+  แม่น้ำนครนายก: "bangpakong",
+  คลองพระปรง: "bangpakong",
+  แควหนุมาน: "bangpakong",
 };
 
 export function riverKeyOf(name: string | null | undefined): RiverKey | null {
@@ -59,6 +66,7 @@ const DAM_RIVER: Record<string, RiverKey> = {
   ลุ่มน้ำป่าสัก: "pasak",
   ลุ่มน้ำท่าจีน: "thachin",
   ลุ่มน้ำแม่กลอง: "maeklong",
+  ลุ่มน้ำบางปะกง: "bangpakong",
 };
 
 export function damRiverKey(basin: string | null | undefined): RiverKey | null {
@@ -144,5 +152,5 @@ export const SCHEMATIC: SchematicReach[] = [
 
 export const CENTRAL_BOUNDS: [[number, number], [number, number]] = [
   [13.2, 98.3],
-  [19.95, 101.6],
+  [19.95, 102.4],
 ];

@@ -117,7 +117,8 @@ export type RiverKey =
   | "lopburi"
   | "pasak"
   | "thachin"
-  | "maeklong";
+  | "maeklong"
+  | "bangpakong";
 
 // ThaiWater situation_level: 1 น้ำน้อยวิกฤต · 2 น้ำน้อย · 3 ปกติ · 4 น้ำมาก · 5 ล้นตลิ่ง
 export type Situation = 1 | 2 | 3 | 4 | 5;
@@ -140,6 +141,8 @@ export type CentralStation = {
   bankPercent: number | null;
   discharge: number | null;
   situation: Situation | null;
+  /** Last reading is older than STALE_AFTER_MS — the gauge is probably down, so the value is not trusted. */
+  stale: boolean;
   isKey: boolean;
   updatedAt: string | null;
   agency: string;

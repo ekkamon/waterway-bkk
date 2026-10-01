@@ -17,9 +17,9 @@ const BASE = "https://huggingface.co/buckets/links-ads/fabdem/resolve/tiles";
 const OUT_DIR = path.join(process.cwd(), "data", "dem-src");
 const FORCE = process.argv.includes("--force");
 
-// CENTRAL_BOUNDS from lib/waterway/basin.ts, rounded out to whole degrees: [[13,19],[98,101]].
+// CENTRAL_BOUNDS from lib/waterway/basin.ts, rounded out to whole degrees: [[13,19],[98,102]].
 const LAT_RANGE = [13, 19];
-const LON_RANGE = [98, 101];
+const LON_RANGE = [98, 102];
 
 // FABDEM's own 10°×10° block name — this mirror groups tiles into a directory per block, one
 // level short of just keying files by their own name, so it still needs reconstructing.

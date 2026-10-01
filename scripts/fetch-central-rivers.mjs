@@ -1,5 +1,5 @@
 // Builds simplified GeoJSON of the major rivers that drain into Bangkok and the
-// central-region river mouths (Chao Phraya system + Tha Chin + Mae Klong).
+// central-region river mouths (Chao Phraya system + Tha Chin + Mae Klong + Bang Pakong).
 // Usage: node scripts/fetch-central-rivers.mjs [--force]
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -31,6 +31,22 @@ const RIVERS = {
   "แม่น้ำแม่กลอง": "maeklong",
   "แม่น้ำแควใหญ่": "maeklong",
   "แม่น้ำแควน้อย": "maeklong",
+  "แม่น้ำบางปะกง": "bangpakong",
+  "แม่น้ำปราจีนบุรี": "bangpakong",
+  "แม่น้ำนครนายก": "bangpakong",
+  "คลองพระปรง": "bangpakong",
+  "แควพระปรง": "bangpakong",
+  "แควหนุมาน": "bangpakong",
+};
+
+// Unnamed OSM ways (traced from each dam down to the Bang Pakong mainstem) for the
+// Naruebodindrachinda and Khlong Siyat dam outflows.
+const EXTRA_WAYS = {
+  bangpakong: [
+    270411284, 270411258, 270411226, 931904205, // Naruebodindrachinda -> Phra Prong
+    388182644, 388182643, 297131778, 297131789, 261991074, 446861700, 446861047, 446852244,
+    446864582, // Khlong Siyat -> Khlong Tha Lat -> Bang Pakong
+  ],
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -94,16 +110,24 @@ async function main() {
     console.log("rivers-central.json exists, skipping (use --force to refetch)");
     return;
   }
-  const names = Object.keys(RIVERS).map((n) => n.replace("แม่น้ำ", "")).join("|");
+  const names = Object.keys(RIVERS).join("|");
   console.log("Major central-region rivers...");
   const ways = await overpass(`[out:json][timeout:240];
-way["waterway"="river"]["name"~"^แม่น้ำ(${names})$"](12.9,98.3,19.95,101.6);
+way["waterway"="river"]["name"~"^(${names})$"](12.9,98.3,19.95,102.6);
+out geom tags;`);
+
+  const extra = Object.values(EXTRA_WAYS).flat();
+  const extraRiver = Object.fromEntries(
+    Object.entries(EXTRA_WAYS).flatMap(([r, ids]) => ids.map((id) => [id, r])),
+  );
+  const extraWays = await overpass(`[out:json][timeout:120];
+way(id:${extra.join(",")});
 out geom tags;`);
 
   const features = [];
-  for (const way of ways) {
+  for (const way of [...ways, ...extraWays]) {
     const name = way.tags?.["name:th"] ?? way.tags?.name;
-    const river = RIVERS[name];
+    const river = extraRiver[way.id] ?? RIVERS[name];
     if (!river) continue;
     const coords = simplify(
       (way.geometry ?? []).map((p) => [p.lon, p.lat]),
@@ -113,7 +137,7 @@ out geom tags;`);
     features.push({
       type: "Feature",
       id: way.id,
-      properties: { r: river, n: name },
+      properties: { r: river, n: name ?? "ลำน้ำสาขาบางปะกง" },
       geometry: { type: "LineString", coordinates: coords },
     });
   }

@@ -28,7 +28,7 @@ const TILE = 256;
 const ZOOMS = new Set([10, 11, 12]);
 // The extent scripts/fetch-dem.mjs downloads (FABDEM tile south-west corners).
 const LAT_RANGE = [13, 19];
-const LON_RANGE = [98, 101];
+const LON_RANGE = [98, 102];
 
 type SourceTile = { data: Float32Array; width: number; height: number; west: number; north: number; dx: number; dy: number };
 

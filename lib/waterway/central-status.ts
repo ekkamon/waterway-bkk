@@ -26,7 +26,10 @@ export function stationColor(s: CentralStation): string {
   return s.situation ? SITUATION_META[s.situation].color : NO_DATA.color;
 }
 
+export const STALE_LABEL = "ขัดข้อง / ข้อมูลเก่า";
+
 export function stationLabel(s: CentralStation): string {
+  if (s.stale) return STALE_LABEL;
   return s.situation ? SITUATION_META[s.situation].label : NO_DATA.label;
 }
 
