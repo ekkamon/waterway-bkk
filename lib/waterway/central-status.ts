@@ -94,30 +94,7 @@ function weightDischarge(riverKey: RiverKey): number {
   return ((RIVER_META[riverKey]?.weight ?? 2) / 3) * 300;
 }
 
-// Every coloured segment whose nearest station reports a level and a bank, with how far above
-// (positive) or below (negative) the bank that station reads — the input for the DEM flood
-// sketch, which floods a segment once its level plus the scenario rise tops the bank. `discharge`
-// is the best size estimate available for that reach (see aboveDischarge helpers), never null,
-// for sizing how far a flooded reach should be allowed to spread.
-export function bankReaches(
-  rivers: RiverCollection,
-  stations: CentralStation[],
-): { coords: GeoJSON.Position[]; overflow: number; level: number; discharge: number; station: CentralStation }[] {
-  const matches = matchRiverStations(rivers, stations);
-  const out: { coords: GeoJSON.Position[]; overflow: number; level: number; discharge: number; station: CentralStation }[] = [];
-  for (const f of rivers.features) {
-    const s = f.id != null ? matches.get(f.id) : undefined;
-    if (!s || s.level == null || s.bankMin == null || !s.riverKey) continue;
-    const discharge = s.discharge ?? nearestDischarge(stations, s.riverKey, s.lat, s.lng) ?? weightDischarge(s.riverKey);
-    out.push({ coords: f.geometry.coordinates, overflow: s.level - s.bankMin, level: s.level, discharge, station: s });
-  }
-  return out;
-}
-
-export function matchRiverStations(
-  rivers: RiverCollection,
-  stations: CentralStation[],
-): Map<string | number, CentralStation> {
+function groupStationsByRiver(stations: CentralStation[]): Map<RiverKey, CentralStation[]> {
   const byRiver = new Map<RiverKey, CentralStation[]>();
   for (const s of stations) {
     if (!s.riverKey || !s.situation) continue;
@@ -125,17 +102,82 @@ export function matchRiverStations(
     list.push(s);
     byRiver.set(s.riverKey, list);
   }
+  return byRiver;
+}
+
+function nearestStationAt(
+  lat: number,
+  lng: number,
+  candidates: CentralStation[],
+): CentralStation | null {
+  let best: { d: number; s: CentralStation } | null = null;
+  for (const s of candidates) {
+    const d = km(lat, lng, s.lat, s.lng);
+    if (d <= MAX_MATCH_KM && (!best || d < best.d)) best = { d, s };
+  }
+  return best?.s ?? null;
+}
+
+// Every coloured segment whose nearest station reports a level and a bank, with how far above
+// (positive) or below (negative) the bank that station reads — the input for the DEM flood
+// sketch, which floods a segment once its level plus the scenario rise tops the bank. `discharge`
+// is the best size estimate available for that reach (see aboveDischarge helpers), never null,
+// for sizing how far a flooded reach should be allowed to spread.
+//
+// A river GeoJSON feature can run tens of km past several gauges, so matching is done per vertex
+// (not once per whole feature) and split into runs wherever the nearest station changes — otherwise
+// one long feature gets entirely claimed by whichever station is closest to its midpoint, even when
+// another gauge sits right next to one of its ends (e.g. RAJ002 on a long Mae Klong segment whose
+// midpoint is actually closer to RAJ001).
+export function bankReaches(
+  rivers: RiverCollection,
+  stations: CentralStation[],
+): { coords: GeoJSON.Position[]; overflow: number; level: number; discharge: number; station: CentralStation }[] {
+  const byRiver = groupStationsByRiver(stations);
+  const out: { coords: GeoJSON.Position[]; overflow: number; level: number; discharge: number; station: CentralStation }[] = [];
+
+  for (const f of rivers.features) {
+    const candidates = byRiver.get(f.properties.r) ?? [];
+    let run: GeoJSON.Position[] = [];
+    let runStation: CentralStation | null = null;
+
+    const flush = () => {
+      const s = runStation;
+      if (s && run.length >= 2 && s.level != null && s.bankMin != null && s.riverKey) {
+        const discharge = s.discharge ?? nearestDischarge(stations, s.riverKey, s.lat, s.lng) ?? weightDischarge(s.riverKey);
+        out.push({ coords: run, overflow: s.level - s.bankMin, level: s.level, discharge, station: s });
+      }
+      run = [];
+    };
+
+    for (const [lng, lat] of f.geometry.coordinates) {
+      const s = nearestStationAt(lat, lng, candidates);
+      if (s !== runStation) {
+        flush();
+        runStation = s;
+        run = [[lng, lat]];
+      } else {
+        run.push([lng, lat]);
+      }
+    }
+    flush();
+  }
+
+  return out;
+}
+
+export function matchRiverStations(
+  rivers: RiverCollection,
+  stations: CentralStation[],
+): Map<string | number, CentralStation> {
+  const byRiver = groupStationsByRiver(stations);
   const matches = new Map<string | number, CentralStation>();
   for (const f of rivers.features) {
-    const candidates = byRiver.get(f.properties.r);
+    const candidates = byRiver.get(f.properties.r) ?? [];
     const coords = f.geometry.coordinates;
     const [lng, lat] = coords[Math.floor(coords.length / 2)];
-    let best: { d: number; s: CentralStation } | null = null;
-    for (const s of candidates ?? []) {
-      const d = km(lat, lng, s.lat, s.lng);
-      if (d <= MAX_MATCH_KM && (!best || d < best.d)) best = { d, s };
-    }
-    if (best && f.id != null) matches.set(f.id, best.s);
+    const s = nearestStationAt(lat, lng, candidates);
+    if (s && f.id != null) matches.set(f.id, s);
   }
   return matches;
 }
