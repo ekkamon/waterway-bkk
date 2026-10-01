@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const VIEWS = [
   { id: "bkk", href: "/", label: "กรุงเทพฯ" },
-  { id: "central", href: "/central", label: "ลุ่มเจ้าพระยา" },
+  { id: "central", href: "/central", label: "ภาพรวมน้ำ" },
 ] as const;
 
 export function ViewSwitcher({

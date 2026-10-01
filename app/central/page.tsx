@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
-import { CentralPage } from "@/components/central/CentralPage";
+import { CentralPage } from '@/components/central/CentralPage';
 
 export const metadata: Metadata = {
-  title: "ภาพรวมน้ำลุ่มเจ้าพระยา · ภาคกลาง",
+  title: 'ภาพรวมสถานการณ์น้ำ',
   description:
-    "ระดับน้ำและปริมาณน้ำในเขื่อน จากภาคเหนือลงสู่กรุงเทพฯ นนทบุรี ปทุมธานี และปากแม่น้ำภาคกลาง จาก ThaiWater (สสน.) และกรมชลประทาน",
+    'ระดับน้ำและปริมาณน้ำในเขื่อนของลุ่มน้ำสายหลัก ตั้งแต่ภาคเหนือ ภาคกลาง ถึงภาคตะวันออก จาก ThaiWater (สสน.) และกรมชลประทาน',
 };
 
 export default function Page() {

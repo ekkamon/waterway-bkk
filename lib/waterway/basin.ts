@@ -148,6 +148,31 @@ export const SCHEMATIC: SchematicReach[] = [
       { river: "maeklong", label: "แม่กลอง · สมุทรสงคราม", dams: ["dam-14", "dam-15"], stations: ["K.55A", "MKG006"] },
     ],
   },
+  {
+    id: "east",
+    label: "ลุ่มน้ำบางปะกง ภาคตะวันออก",
+    note: "ปราจีนบุรี · นครนายก · ฉะเชิงเทรา ไหลออกอ่าวไทยที่ปากแม่น้ำบางปะกง",
+    branches: [
+      {
+        river: "bangpakong",
+        label: "พระปรง/หนุมาน (ต้นน้ำ)",
+        dams: ["dam-37"],
+        stations: ["Kgt.12A", "SKE001", "Kgt.13A", "Kgt.43A", "Kgt.34", "PRC003"],
+      },
+      {
+        river: "bangpakong",
+        label: "นครนายก",
+        dams: ["dam-32"],
+        stations: ["Ny.1B", "NYK008", "Ny.7", "NYK000"],
+      },
+      {
+        river: "bangpakong",
+        label: "ปราจีนบุรี → บางปะกง (ปากแม่น้ำ)",
+        stations: ["PRC001", "Kgt.6", "PRC005", "PRC002", "Kgt.1", "BPK003", "BPK001"],
+      },
+      { river: "bangpakong", label: "คลองสียัด · ท่าลาด", dams: ["dam-30"], stations: ["BPK004"] },
+    ],
+  },
 ];
 
 export const CENTRAL_BOUNDS: [[number, number], [number, number]] = [

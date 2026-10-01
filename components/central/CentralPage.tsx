@@ -241,11 +241,11 @@ export function CentralPage() {
       >
         <div className="border-b p-4">
           <h1 className="text-lg font-semibold">
-            ภาพรวมน้ำลุ่มเจ้าพระยา · ภาคกลาง
+            ภาพรวมสถานการณ์น้ำ
           </h1>
           <p className="text-xs text-muted-foreground">
-            จากเขื่อนภาคเหนือ สู่กรุงเทพฯ นนทบุรี ปทุมธานี และปากแม่น้ำ ·
-            ThaiWater (สสน.) + กรมชลประทาน
+            ระดับน้ำและเขื่อนของลุ่มน้ำสายหลัก ตั้งแต่ภาคเหนือ ภาคกลาง ถึงภาคตะวันออก
+            (บางปะกง) · ThaiWater (สสน.) + กรมชลประทาน
           </p>
           <div className="mt-3 grid grid-cols-2 gap-1.5">
             <FlowCard
